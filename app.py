@@ -8,8 +8,17 @@ from PIL import Image
 # Load your trained model
 model = load_model('ResNet50_cifar10_1.h5')
 
+# Define class names for CIFAR-10 labels
+class_names = [
+    'airplane', 'automobile', 'bird', 'cat', 'deer',
+    'dog', 'frog', 'horse', 'ship', 'truck'
+]
+
 # Define a function to make predictions
 def predict_image(img):
+    # Convert the NumPy array to a PIL Image
+    img = Image.fromarray((img * 255).astype(np.uint8))
+
     # Resize the image to the expected size (32, 32)
     img = img.resize((32, 32))
 
@@ -20,7 +29,10 @@ def predict_image(img):
 
     # Make predictions
     predictions = model.predict(img_array)
-    label = np.argmax(predictions)
+    label_index = int(np.argmax(predictions))  # Convert to Python int
+
+    # Get the corresponding class name
+    label = class_names[label_index]
 
     return label
 
