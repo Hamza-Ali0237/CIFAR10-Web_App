@@ -34,7 +34,11 @@ def predict_image(img):
     # Get the corresponding class name
     label = class_names[label_index]
 
-    return label
+    # Get the confidence value for the predicted label
+    confidence = float(predictions[0][label_index])
+
+    return {label: confidence}
+
 
 # Create Gradio interface
 io = gr.Interface(fn=predict_image, inputs='image', outputs='label', analytics_enabled=True,
