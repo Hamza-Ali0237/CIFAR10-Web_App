@@ -6,7 +6,7 @@ from tensorflow.keras.applications.resnet50 import preprocess_input, decode_pred
 from PIL import Image
 
 # Load your trained model
-model = load_model('ResNet50_cifar10_1.h5')
+model = load_model('ResNet50_cifar10_best.h5')
 
 # Define class names for CIFAR-10 labels
 class_names = [
