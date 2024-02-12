@@ -1,47 +1,43 @@
-import gradio as gr
-import numpy as np
+import tensorflow as tf
 from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
-from PIL import Image
+import gradio as gr
 
-# Load your trained model
-model = load_model('ResNet50_cifar10_best.h5')
+# Class names
+class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+               'dog', 'frog', 'horse', 'ship', 'truck']
 
-# Define class names for CIFAR-10 labels
-class_names = [
-    'airplane', 'automobile', 'bird', 'cat', 'deer',
-    'dog', 'frog', 'horse', 'ship', 'truck'
-]
+# Load trained model
+model = load_model("ResNet50_cifar10_best_fr.h5")
 
-# Define a function to make predictions
-def predict_image(img):
-    # Convert the NumPy array to a PIL Image
-    img = Image.fromarray((img * 255).astype(np.uint8))
+# Define the preprocessing function
+def preprocess_image(img):
+    img = tf.image.resize(img, (32, 32))
+    img = img / 255.0
+    img = tf.expand_dims(img, axis=0)
+    return img
 
-    # Resize the image to the expected size (32, 32)
-    img = img.resize((32, 32))
 
-    # Preprocess the image
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = preprocess_input(img_array)
+# Define the postprocessing function
+def process_prediction(prediction):
+    predicted_class_index = int(prediction.argmax())
+    predicted_class_name = class_names[predicted_class_index]
+    return predicted_class_name
 
-    # Make predictions
-    predictions = model.predict(img_array)
-    label_index = int(np.argmax(predictions))  # Convert to Python int
 
-    # Get the corresponding class name
-    label = class_names[label_index]
-
-    # Get the confidence value for the predicted label
-    confidence = float(predictions[0][label_index])
-
-    return {label: confidence}
-
+# Define the prediction function
+def predict_cifar10(img):
+    preprocessed_img = preprocess_image(img)
+    prediction = model.predict(preprocessed_img)
+    return process_prediction(prediction)
 
 # Create Gradio interface
-io = gr.Interface(fn=predict_image, inputs='image', outputs='label', analytics_enabled=True,
-                   title="CIFAR-10 Object Recognition App",
-                   description="Made By: Humza Ali [www.linkedin.com/in/humza-ali-se/]")
-io.launch()
+iface = gr.Interface(
+    fn=predict_cifar10,
+    inputs=[gr.Image(label="Input Image")],
+    outputs=[gr.Label(label="Predicted Class")],
+    title="CIFAR-10 Image Classifier",
+    description="Upload an image to classify it using a CIFAR-10 model."
+)
+
+# Launch the interface
+iface.launch()
